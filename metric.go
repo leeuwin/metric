@@ -12,6 +12,18 @@ import (
 type Observer interface {
 	Observe(float64)
 }
+type ObserverWith interface {
+	ObserveWith(float64, []string)
+}
+
+type TimeGranularity int
+
+const (
+	GranularityNanoSecond = iota
+	GranularityMicroSecond
+	GranularityMilliSecond
+	GranularitySecond
+)
 
 // note:此数组顺序有意义，不能随意调整顺序
 var gLabelNames []string = []string{
@@ -73,6 +85,48 @@ func ObserveCostTime(obs Observer, now time.Time) {
 
 	costTime := time.Since(now).Milliseconds()
 	obs.Observe(float64(costTime))
+}
+
+func ObserveCostTimeWith(obs ObserverWith, labelValues []string, now time.Time) {
+
+	costTime := time.Since(now).Milliseconds()
+	obs.ObserveWith(float64(costTime), labelValues)
+}
+
+// 可自定义要统计的时间 粒度，支持nano,micro,milli,and 1
+func ObserveCostTimeGranularity(obs Observer, now time.Time, granularity TimeGranularity) {
+
+	costTime := time.Since(now)
+	var dur int64
+	switch granularity {
+	case GranularityNanoSecond:
+		dur = costTime.Nanoseconds()
+	case GranularityMicroSecond:
+		dur = costTime.Microseconds()
+	case GranularityMilliSecond:
+		dur = costTime.Milliseconds()
+	case GranularitySecond:
+		dur = int64(costTime.Seconds())
+	}
+	obs.Observe(float64(dur))
+}
+
+func ObserveCostTimeGranularityWith(obs ObserverWith, labelValues []string, now time.Time, granularity TimeGranularity) {
+
+	costTime := time.Since(now)
+	var dur int64
+	switch granularity {
+	case GranularityNanoSecond:
+		dur = costTime.Nanoseconds()
+	case GranularityMicroSecond:
+		dur = costTime.Microseconds()
+	case GranularityMilliSecond:
+		dur = costTime.Milliseconds()
+	case GranularitySecond:
+		dur = int64(costTime.Seconds())
+	}
+
+	obs.ObserveWith(float64(dur), labelValues)
 }
 
 func IsEnable() bool {

@@ -36,7 +36,8 @@ var (
 
 var (
 	//summary
-	sm1 = metric.NewSummary("sm_statistic")
+	sm1 = metric.NewSummary("sm_statistic_millicecond")
+	sm2 = metric.NewSummary("sm_statistic_second")
 )
 
 func main() {
@@ -47,6 +48,7 @@ func main() {
 		fmt.Println(err1)
 	}
 
+	//演示重复初始化报错
 	err2 := metric.Init("0.0.0.0:8088", "user-center", "srv")
 	if err2 != nil {
 		fmt.Println(err2)
@@ -58,9 +60,21 @@ func main() {
 	cntWith0.IncWith([]string{"POST", "/user/login"})
 	cntWith0.IncWith([]string{"POST", "/user/logout"})
 
+	//统计匿名函数执行耗时（ms)
 	func() {
 
 		defer metric.ObserveCostTime(sm1, time.Now())
+
+		//模拟处理耗时2s
+		time.Sleep(2 * time.Second)
+	}()
+
+	//统计匿名函数执行耗时（s)
+	func() {
+
+		defer metric.ObserveCostTimeGranularity(sm2, time.Now(), metric.GranularitySecond)
+
+		//模拟处理耗时2s
 		time.Sleep(2 * time.Second)
 	}()
 
