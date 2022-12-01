@@ -97,35 +97,14 @@ func ObserveCostTimeWith(obs ObserverWith, labelValues []string, now time.Time) 
 func ObserveCostTimeGranularity(obs Observer, now time.Time, granularity TimeGranularity) {
 
 	costTime := time.Since(now)
-	var dur int64
-	switch granularity {
-	case GranularityNanoSecond:
-		dur = costTime.Nanoseconds()
-	case GranularityMicroSecond:
-		dur = costTime.Microseconds()
-	case GranularityMilliSecond:
-		dur = costTime.Milliseconds()
-	case GranularitySecond:
-		dur = int64(costTime.Seconds())
-	}
+	dur := transGranularity(costTime, granularity)
 	obs.Observe(float64(dur))
 }
 
 func ObserveCostTimeGranularityWith(obs ObserverWith, labelValues []string, now time.Time, granularity TimeGranularity) {
 
 	costTime := time.Since(now)
-	var dur int64
-	switch granularity {
-	case GranularityNanoSecond:
-		dur = costTime.Nanoseconds()
-	case GranularityMicroSecond:
-		dur = costTime.Microseconds()
-	case GranularityMilliSecond:
-		dur = costTime.Milliseconds()
-	case GranularitySecond:
-		dur = int64(costTime.Seconds())
-	}
-
+	dur := transGranularity(costTime, granularity)
 	obs.ObserveWith(float64(dur), labelValues)
 }
 
@@ -201,4 +180,19 @@ func makeLabelValues(labelValues []string) []string {
 	lvs = append(lvs, AppName(), AppCenter(), AppSuffix())
 	lvs = append(lvs, labelValues...)
 	return lvs
+}
+
+func transGranularity(costTime time.Duration, granularity TimeGranularity) int64 {
+	var dur int64
+	switch granularity {
+	case GranularityNanoSecond:
+		dur = costTime.Nanoseconds()
+	case GranularityMicroSecond:
+		dur = costTime.Microseconds()
+	case GranularityMilliSecond:
+		dur = costTime.Milliseconds()
+	case GranularitySecond:
+		dur = int64(costTime.Seconds())
+	}
+	return dur
 }
